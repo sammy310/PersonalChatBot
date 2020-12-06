@@ -3,112 +3,117 @@
 using namespace std;
 
 /*
-    activate when scan "cal" and request formula
+    activate when scan "계산" and request formula
     */
 void ChatBot::cal_start() {
     string formula;
     double result;
 
-    cout << "Write your formula.\n" << ">>";
+    cout << "식을 입력해주세요.\n" << ">>";
     getline(cin, formula);
     switch (Calculator::CalculateFormula(formula, result)) {
-	case -1:
-		cout << "Err" << endl;
-		break;
 	case 0:
-		cout << "Formula Err" << endl;
+		cout << "계산 식이 올바르지 않습니다!!" << endl;
 		break;
 	case 1:
-		cout << "Answer is " << result << endl;
+		cout << "계산한 결과 : " << result << endl;
 		break;
 	}
 }
 
 /*
+    activate when sacn "스케쥴" or "일정" and start Scheduler
+    */
+void ChatBot::schedule_start() {
+    StartSchedule();
+    getchar();
+}
+
+/*
+    activate when scan "알람" and start alarm function
+    */
+void ChatBot::alarm_start() {
+    Alarm Al;
+    Al.Alarm_function();
+    getchar();
+}
+
+/*
     activate when scan "지뢰" and start MineSweeper
     */
-int ChatBot::mine_start() {
+void ChatBot::mine_start() {
     class MineSweeper ms;
-
-    while (1) {
-        cout << "1. Start Mine Sweeper" << endl;
-        cout << "2. Exit" << endl;
-
-        int num = 0;
-        cout << ">> ";
-        cin >> num;
-
-        if (num == 1) {
-            cout << "Start Mine Sweeper" << endl;
-            ms.StartMineSweeper();
-            cout << "End Mine Sweeper" << endl;
-        } else if (num == 2) {
-            break;
-        }
-
-        cout << endl;
-    }
-
-    return 0;
+    ms.StartMineSweeper();
 }
 
 /*
     open text file and select random line in answer text file
-    (now, "this fuction" only print frist line or 'two' lines <- doesnt mean 'second' line)
-    (need to change)
+    (now, "this fuction" only print frist line or 'two' lines <- doesnt mean
+   'second' line) (need to change)
     */
 void ChatBot::answer_phase(string dir) {
     ifstream readFile;
     readFile.open(dir);
 
-    if(readFile.is_open()) {
+    if (readFile.is_open()) {
         // make 0 - 4 random number
         random_device rd;
         mt19937 mer(rd());
         uniform_int_distribution<> line(0, 4);
         //
 
-        while(!readFile.eof()) {
+        while (!readFile.eof()) {
             string answer;
-            for(size_t i = 0; i <= line(mer); i++) {
+            for (size_t i = 0; i <= line(mer); i++) {
                 getline(readFile, answer);
             }
-            cout << answer << endl; 
+            cout << answer << endl;
         }
         readFile.close();
-    }
+     }
 }
 
 /*
-	* -1 : Cannot scan correct word
-	*  0 : Success to Scan for chat
-	*  1 : move to Calculate
-    *  2 : move to MineSweeper
-	*/
+     * -1 : Cannot scan correct word
+     *  0 : Success to Scan for chat
+     *  1 : move to Calculate
+     *  2 : move to MineSweeper
+     *  3 : move to Alarm
+     *  4 : move to Schedule
+    */
 int ChatBot::chat_check(string question) {
     ifstream readFile;
     readFile.open(WORD_GROUP);
 
-    if(question.find(QUIT) != string::npos) { 
-        cout << "Shutting down Program." << endl;
+    if (question.find(QUIT) != string::npos) {
+        cout << "프로그램을 종료합니다." << endl;
         _exit(0);
-    } else if(question.find(CALCULATOR) != string::npos) {
+    } else if (question.find(CALCULATOR) != string::npos) {
         cal_start();
         return 1;
-    } else if(question.find(MINE) != string::npos) {
+    } else if (question.find(MINE_1) != string::npos ||
+               question.find(MINE_2) != string::npos) {
         mine_start();
         return 2;
+    } else if (question.find(ALARM) != string::npos) {
+        alarm_start();
+        return 3;
+    } else if (question.find(SCHEDULERS_1) != string::npos ||
+               question.find(SCHEDULERS_2) != string::npos) {
+        schedule_start();
+        return 4;
     }
 
-    if(readFile.is_open()) {
-        while(!readFile.eof()) {
+    if (readFile.is_open()) {
+        while (!readFile.eof()) {
             string line, word, rep_word;
             getline(readFile, line);
             stringstream ss(line);
             ss >> word;
             rep_word = word;
             do {
-                if(question.find(word) == string::npos) continue;
+                if (question.find(word) == string::npos)
+                    continue;
                 else {
                     string dir = DIR_FOREHEAD;
                     dir.append(rep_word);
@@ -116,7 +121,7 @@ int ChatBot::chat_check(string question) {
                     answer_phase(dir);
                     return 0;
                 }
-            } while(ss >> word);
+            } while (ss >> word);
         }
         readFile.close();
     }
@@ -127,13 +132,13 @@ int ChatBot::chat_check(string question) {
     start Chat Bot
     */
 void ChatBot::chat_body() {
-    cout << "Welcome." << endl;
-    while(1) {
+    cout << "어서오세요 회원님." << endl;
+    while (1) {
         string question;
         cout << ">> ";
         getline(cin, question);
-        if(chat_check(question) == -1) {
-            cout << "Cannot understand" << endl;
+        if (chat_check(question) == -1) {
+            cout << "이해할 수 없는 말입니다." << endl;
         }
     }
 }

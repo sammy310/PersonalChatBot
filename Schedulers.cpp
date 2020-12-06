@@ -1,5 +1,78 @@
 #include "Schedulers.h"
 
+void StartSchedule() {
+    char *scFileName;
+    SCHEDULE *pHead;
+    DATE current;
+    pHead = InitScheduleHead();
+
+    LoadScheduleFromFile(pHead, SCHEDULERFILENAME);
+
+    current = GetToday();
+    system("clear");
+
+    while (1) {
+        char ch;
+
+        DrawCalendar(pHead, current);
+        ShowAllScheduleByDay(pHead, current);
+
+        ch = GetSelectedMenu();
+
+        if (ch == RETURN_CHAT) {
+            break;
+        }
+
+        switch (ch) { //메뉴에 따라 해당 달로이동
+        case PREV_MONTH:
+            ModifyMonth(&current, -1);
+            break;
+        case NEXT_MONTH:
+            ModifyMonth(&current, 1);
+            break;
+        case PREV_DAY:
+            ModifyDay(&current, -1);
+            break;
+        case NEXT_DAY:
+            ModifyDay(&current, 1);
+            break;
+        case ADD_SCHEDULE:
+            AddSchedule(pHead);
+            break;
+        case DELETE_SCHEDULE:
+            DeleteSchedule(pHead);
+            break;
+        case CHANGE_SCHEDULE:
+            Changeschedule(pHead);
+            break;
+        }
+        system("clear");
+    }
+    SaveScheduleToFile(pHead, SCHEDULERFILENAME);
+    KillAllScheduleNode(pHead);
+}
+
+char GetSelectedMenu ( void )
+{
+	char ch;
+
+	printf ("          ----------------------------\n");
+	printf ("          |          MENU            |\n");
+	printf ("          |  d : 다음달 보기         |\n");
+	printf ("          |  a : 전 달 보기          |\n");
+	printf ("          |  s : 다음날보기          |\n");
+	printf ("          |  w : 어제 보기           |\n");
+	printf ("          |  1 : 스케줄 추가하기     |\n");
+	printf ("          |  2 : 스케줄 지우기       |\n");
+	printf ("          |  3 : 스케줄 바꾸기       |\n");
+	printf ("          |  q : 채팅 봇으로 돌아가기|\n");
+	printf ("          --------------------------\n\n");
+	printf ("           메뉴 고르시오 >> ");
+	ch = getchar ();
+	printf("\n");
+	return ch;
+}
+
 
 SCHEDULE *InitScheduleHead ( void )
 {
@@ -53,7 +126,7 @@ void AddScheduleNode ( SCHEDULE *pHead , SCHEDULE schedule )
 
 	pNew = (SCHEDULE *) malloc ( sizeof(SCHEDULE) );
 	*pNew = schedule;
-	
+
 	while ( pFind != NULL )
 	{
 		if ( CompareDateAndTime ( schedule.mDate , pFind->mDate ) == -1 ) //해당 요일 계속 찾는 과정
@@ -139,7 +212,7 @@ void PrintAllSchedule ( SCHEDULE *pHead )
 }
 
 void LoadScheduleFromFile ( SCHEDULE *pHead ,  const char* szFileName )
-{	
+{
 	SCHEDULE news;
 	FILE *fp;
 	int nCnt = 0;
@@ -156,7 +229,7 @@ void LoadScheduleFromFile ( SCHEDULE *pHead ,  const char* szFileName )
 	}
 
 	while ( !feof(fp) )
-	{		
+	{
 		fscanf ( fp , "%s" , szBuf );
 
 		switch ( nCnt ) //연 초 일 시간, 할일 까지 순서대로 입력 받음 숫자는 atoi 함수 통해 숫자로 변경
@@ -198,12 +271,12 @@ void SaveScheduleToFile ( SCHEDULE *pHead , const char * szFileName )
 {
 	FILE *fp;
 	SCHEDULE *pFind = pHead->next;
- 
+
 	fp = fopen ( szFileName , "w" );//파일 내용 전부 추가
 
 	while ( pFind != NULL )
 	{
-		fprintf ( fp , "%d %d %d %d %s\n" ,  pFind->mDate.m_nYear , pFind->mDate.m_nMonth ,pFind->mDate.m_nDay , pFind->mDate.m_nHour , pFind->mText);	
+		fprintf ( fp , "%d %d %d %d %s\n" ,  pFind->mDate.m_nYear , pFind->mDate.m_nMonth ,pFind->mDate.m_nDay , pFind->mDate.m_nHour , pFind->mText);
 
 		pFind = pFind->next;
 	}
@@ -233,7 +306,7 @@ SCHEDULE InputSchedule ( SCHEDULE *pHead )
 		{
 			break;
 		}
-		
+
 		printf ("  이미 그 시간에 할 일이 존재합니다 \n");
 
 	}
@@ -247,12 +320,12 @@ void ShowAllScheduleByDay ( SCHEDULE *pHead , DATE date )
 
 	printf ( "\n" );
 	printf ( "              *  %d/%d/%d에 할 일? *\n" , date.m_nYear ,date.m_nMonth ,date.m_nDay );
-	
+
 	printf ( "------------------------------------------------------------------------------\n" );
 
 	while ( pFind != NULL )
 	{
-		if ( CompareDate ( pFind->mDate , date ) == 0 ) 
+		if ( CompareDate ( pFind->mDate , date ) == 0 )
 		{
 			printf ( ">>%d 시 : %s\n" , pFind->mDate.m_nHour , pFind->mText );
 		}
@@ -311,4 +384,3 @@ void Changeschedule ( SCHEDULE *pHead )
 	system ("clear");
 
 }
-

@@ -18,7 +18,6 @@ void MineSweeper::StartMineSweeper() {
     SetTerminalSize_Menu();
 
     state = State::Menu;
-    GetKey();
 
     while (true) {
         clear();
@@ -362,7 +361,10 @@ void MineSweeper::LoadGame() {
     close(fd);
 }
 
-void MineSweeper::DeleteSave() { DirManager::DeleteFile(SAVEFILE); }
+void MineSweeper::DeleteSave() {
+    isGameLoad = false;
+    DirManager::DeleteFile(SAVEFILE);
+}
 
 // Rank
 

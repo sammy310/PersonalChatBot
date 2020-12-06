@@ -1,85 +1,102 @@
-#include <unistd.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
+#include "Alarm.h"
 
-void timeover(int signum)
+
+// 현재시각
+void Alarm::Nowtime()
 {
-    printf("\n\ntime over !! \n\n");
-    exit(0);
+    time_t curr_time;
+    struct tm *curr_tm;
+
+    curr_time = time(NULL);
+
+    curr_tm = localtime(&curr_time);
+
+    cout << "현재시각: " << curr_tm->tm_year + 1900 << "년 " << curr_tm->tm_mon + 1 << "일 " << curr_tm->tm_mday << "일" ;
+    cout << curr_tm->tm_hour << "시 " << curr_tm->tm_min << "분 " << curr_tm->tm_sec << "초" << '\n';
+
 }
 
- 
-int main()
+int Alarm::Time_cal(){
+    hr2=hr*3600;
+    min2=min*60;
+    sec;
+    total=hr2+min2+sec;
+    return total;
+
+}
+
+void Alarm::Time_inputstring(){
+    strcpy(str_buff, insert.c_str());
+
+    char *tok = strtok(str_buff, " ");
+
+    str_cnt = 0;
+    while (tok != nullptr) {
+        str_arr[str_cnt++] = string(tok);
+        tok = strtok(nullptr, " ");
+    }
+
+    string strhr=str_arr[0];
+    string strmin=str_arr[1];
+    string strsec=str_arr[2];
+
+    hr = stoi(strhr);
+    min = stoi(strmin);
+    sec = stoi(strsec);
+}
+
+void Alarm::Alarm_function()
 {
     while (1)
     {
-        int timelimit;
-        int timelimit1;
-        int min;
-        int hr;
-        int test;
+        Nowtime();
 
-        int getYesNoKey(void);
-        int getYesNoCancelKey(void);
+        cout<<"설정 시간을 입력해주세요 ['시간' '분' '초' 자릿수를 모두 입력해주세요. (ex.4초 = 0시간 0분 4초 타이머 설정해줘)] >> ";
 
-        time_t now_time;
-        struct tm *now_date;
-        char buf[100];
-        printf("알람기능을 실행했어요.\n");
-    
-        printf("몇 초로 설정할까요? (초단위)\n");
-        scanf("%d",&timelimit);// 설정 시간 받기
- 
-        min = timelimit / 60;
-        timelimit1 = timelimit % 60;
-    
-        hr = min / 60;
-        min = min % 60;
-        // 시간 시분초 구분 출력
+        getline(cin,insert);
 
+        Time_inputstring();
 
+        unsigned int timeVal = Time_cal();
 
-    
-        printf("%d시 %d분 %d초 타이머를 설정했어요!\n>", hr, min, timelimit1);
-        
-        time(&now_time); //현재 시각을 구한다.
-    
-        now_date = localtime(&now_time);//초 단위 값을 지역 시각(DateTime)을 구한다.
-        strcpy(buf,asctime(now_date));//버퍼에 현재 시각을 출력
-        puts(buf);    //표준 출력 스트림에 출력
-        // 타임슬립 구현
-        sleep(timelimit);
-        //타임 슬립 'timelimit' 만큼 후
-        
-        
-        printf("%d시 %d분 %d초 타이머가 종료되었습니다.\n>", hr, min, timelimit1);
+        pthread_t tid = 0;
+        pthread_create(&tid, NULL, StartTimer, (void *)&timeVal);
+        cout << hr << "시간 " << min << "분 " << sec << "초 타이머를 설정했어요!"<<endl;
 
-        time(&now_time); //현재 시각을 구한다.
-    
-        now_date = localtime(&now_time);//초 단위 값을 지역 시각(DateTime)을 구한다.
-        strcpy(buf,asctime(now_date));//버퍼에 현재 시각을 출력
-        puts(buf);    //표준 출력 스트림에 출력
-        printf("계속 진행할까요?(Y/N)\n");     
-        char ch;
-        getchar();
-        scanf("%c",&ch);
-        
-        if(ch=='y'||ch=='Y'){// 사용자의 입력 받음
-            printf("네. 계속 할게요.\n");            
+        char input = 0;
+        while (1){
+            cout << "알람 기능을 계속 수행할까요? (y: 계속 | n: 종료)" << endl << ">> ";
+            cin >> input;
+            if (input=='y' || input=='Y'){
+                break;
+            }
+            else if (input=='n' || input=='N' )
+            {
+                cout << "알람 도움이 필요하면 언제든지 불러주세요." << endl;
+                return;
+
+            }
+            else{
+                cout << "다시 입력해주세요!" << endl;
+            }
         }
-        else if (ch=='n'||ch=='N'){
-            
-            printf("타이머를 종료했어요.\n");
-            exit(0); // 여기부터 챗봇으로 연결하는 코드 구현 하면 될 것 같습니다.
-            
-        }
+
+        while(getchar() != '\n');
     }
-    
+}
 
-    
+void *StartTimer(void *timeVal) {
+    unsigned int time = *(unsigned int *)timeVal;
 
- 
+    sleep(time);
+
+    int sec = time % 60;
+    time /= 60;
+    int min = time % 60;
+    time /= 60;
+    int hr = time;
+
+    cout << hr << "시간 " << min << "분 " << sec << "초 타이머가 종료되었습니다." << endl << ">> ";
+    cout.flush();
+    pthread_exit(NULL);
 }
